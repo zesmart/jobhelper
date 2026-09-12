@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>求职助手 · 物流 / 供应链岗位检索</title>
+<style>
+/* ===================== 设计令牌 ===================== */
+:root{
+  /* 中性色 */
+  --m-bg:#ffffff;  --m-bg-2:#f8f9fa;  --m-bg-3:#f1f1f1;
+  --m-text:rgba(0,0,0,.88);  --m-text-2:rgba(0,0,0,.67);
+  --m-text-3:rgba(0,0,0,.45); --m-text-4:rgba(0,0,0,.28);
+  --m-border:rgba(0,0,0,.08); --m-border-ctrl:rgba(0,0,0,.1);
+  --m-ink:#0f0f0f;
+  /* 品牌色 */
+  --m-primary:#00A480; --m-primary-hover:#008A69; --m-primary-soft:rgba(0,164,128,.10);
+  --m-accent:#F38546;  --m-accent-soft:rgba(243,133,70,.12);
+  /* 圆角纪律 */
+  --m-br-ctrl:8px; --m-br-card:12px; --m-br-pop:16px; --m-br-pill:9999px;
+  /* 阴影：品牌签名（绿调） */
+  --m-shadow-card:rgba(0,75,58,.06) 0 4.4px 13.2px;
+  --m-shadow-hover:rgba(0,0,0,.2) 0 0 1px, rgba(0,0,0,.12) 0 8px 20px;
+  --m-shadow-xl:0 8px 8px -4px rgba(0,0,0,.03), 0 20px 24px -4px rgba(0,0,0,.08);
+  /* 字体 */
+  --m-font:"Sora","PingFang SC","MiSans","HarmonyOS Sans SC",-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--m-font);background:var(--m-bg-2);color:var(--m-text);font-size:15px;line-height:24px;font-weight:400;-webkit-font-smoothing:antialiased}
+b,strong{font-weight:500}
+a{color:inherit;text-decoration:none}
+button,input,select{font-family:inherit;font-size:15px;line-height:24px;color:var(--m-text)}
+button{cursor:pointer;border:none;background:none}
+::selection{background:rgba(0,164,128,.16)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 32px}
+
+/* ===================== 顶栏 ===================== */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--m-border)}
+.topbar .wrap{height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .mk{color:var(--m-primary);flex:none}
+.brand-name{font-size:16px;font-weight:500;color:var(--m-ink);letter-spacing:-.01em;white-space:nowrap}
+.brand-tag{font-size:13px;color:var(--m-text-3);padding:1px 9px;background:var(--m-bg-3);border-radius:var(--m-br-pill);white-space:nowrap}
+.topbar-right{display:flex;align-items:center;gap:12px;flex:none}
+.upd{font-size:13px;color:var(--m-text-3);white-space:nowrap}
+.upd b{color:var(--m-text-2);font-weight:500;font-variant-numeric:tabular-nums}
+.btn{height:34px;padding:0 15px;border-radius:var(--m-br-ctrl);border:1px solid var(--m-border-ctrl);background:#fff;color:var(--m-text);font-size:14px;display:inline-flex;align-items:center;gap:6px;transition:background .18s,border-color .18s,color .18s;white-space:nowrap}
+.btn:hover{background:rgba(0,0,0,.03)}
+.btn:active{background:rgba(0,0,0,.06)}
+.btn.primary{background:var(--m-ink);border-color:var(--m-ink);color:#fff;font-weight:500}
+.btn.primary:hover{background:#2a2a2a}
+.btn.solid{background:var(--m-primary);border-color:var(--m-primary);color:#fff;font-weight:500}
+.btn.solid:hover{background:var(--m-primary-hover)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--m-text-2);height:28px;padding:0 8px}
+.btn.ghost:hover{background:rgba(0,0,0,.04);color:var(--m-text)}
+
+/* ===================== Hero ===================== */
+.hero{background:#fff;border-bottom:1px solid var(--m-border)}
+.hero .wrap{padding-top:40px;padding-bottom:30px}
+.hero h1{font-size:30px;line-height:42px;font-weight:500;color:var(--m-ink);letter-spacing:-.02em}
+.hero-sub{margin-top:8px;font-size:15px;color:var(--m-text-2);font-weight:400;line-height:26px}
+.hero-sub b{color:var(--m-primary);font-weight:500;font-variant-numeric:tabular-nums}
+.apibar{margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;line-height:20px;color:var(--m-text-3)}
+.apibar .dot{width:6px;height:6px;border-radius:50%;background:var(--m-primary);flex:none}
+.apibar.err .dot{background:#C0392B}
+.apibar.err{color:#C0392B}
+.apibar a{color:var(--m-primary);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.apibar .spin{width:12px;height:12px;flex:none;border:2px solid rgba(0,164,128,.25);border-top-color:var(--m-primary);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stats{display:flex;gap:16px;margin-top:26px;flex-wrap:wrap}
+.stat{flex:1;min-width:160px;background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-card);padding:16px 20px;box-shadow:var(--m-shadow-card);transition:box-shadow .2s}
+.stat:hover{box-shadow:var(--m-shadow-hover)}
+.stat b{display:block;font-size:28px;line-height:36px;font-weight:500;color:var(--m-primary);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--m-text-3)}
+
+/* ===================== 筛选区 ===================== */
+.filters{background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-card);box-shadow:var(--m-shadow-card);padding:20px;margin-top:26px}
+.search-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1;min-width:280px;position:relative}
+.search-box .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--m-text-4);display:flex}
+.search-box input{width:100%;height:46px;padding:0 14px 0 42px;border:1px solid var(--m-border-ctrl);border-radius:var(--m-br-ctrl);background:var(--m-bg-2);font-size:15px;transition:background .18s,border-color .18s,box-shadow .18s}
+.search-box input::placeholder{color:var(--m-text-4)}
+.search-box input:focus{outline:none;background:#fff;border-color:var(--m-primary);box-shadow:0 0 0 3px rgba(0,164,128,.14)}
+.kbd{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--m-text-4);border:1px solid var(--m-border);border-radius:4px;padding:0 6px;background:#fff;pointer-events:none}
+
+.presets{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.presets .lbl{font-size:13px;color:var(--m-text-3);margin-right:2px}
+.chip{height:34px;padding:0 14px;display:inline-flex;align-items:center;border:1px solid transparent;border-radius:var(--m-br-pill);background:rgba(0,0,0,.03);color:var(--m-text-2);font-size:14px;transition:background .15s,color .15s,border-color .15s;user-select:none}
+.chip:hover{background:rgba(0,0,0,.06);color:var(--m-text)}
+.chip.on{background:var(--m-ink);color:#fff;font-weight:500}
+
+.opts{margin-top:18px;padding-top:18px;border-top:1px solid var(--m-border);display:flex;gap:12px 20px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--m-text-2)}
+.opts label{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;transition:color .15s}
+.opts label:hover{color:var(--m-text)}
+.opts input[type=checkbox]{width:16px;height:16px;accent-color:var(--m-primary);cursor:pointer}
+.opts .fld{display:inline-flex;align-items:center;gap:7px}
+.opts .fld>span{font-size:13px;color:var(--m-text-3)}
+.opts select{height:36px;padding:0 28px 0 12px;border:1px solid var(--m-border-ctrl);border-radius:var(--m-br-ctrl);background:var(--m-bg-2) url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%23000' stroke-opacity='.45' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center;font-size:13px;cursor:pointer;appearance:none;transition:background-color .15s,border-color .15s}
+.opts select:hover{background-color:#fff;border-color:rgba(0,0,0,.16)}
+.opts select:focus{outline:none;border-color:var(--m-primary);background-color:#fff}
+
+/* 城市多选 */
+.city-ms{position:relative}
+.city-ms-btn{height:36px;padding:0 12px;min-width:130px;border:1px solid var(--m-border-ctrl);border-radius:var(--m-br-ctrl);background:var(--m-bg-2);font-size:14px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .15s,border-color .15s}
+.city-ms-btn:hover{background-color:#fff;border-color:rgba(0,0,0,.16)}
+.city-ms-btn.on{border-color:var(--m-primary);background:var(--m-primary-soft);color:var(--m-primary);font-weight:500}
+.city-ms-panel{position:absolute;top:42px;left:0;width:580px;max-width:90vw;background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-pop);box-shadow:var(--m-shadow-xl);padding:18px;z-index:90;display:none}
+.city-ms-panel.show{display:block}
+.cms-top{display:flex;gap:8px;align-items:center;margin-bottom:16px}
+.cms-top input{flex:1;height:38px;padding:0 14px;border:1px solid var(--m-border-ctrl);border-radius:var(--m-br-ctrl);background:var(--m-bg-2);font-size:14px}
+.cms-top input:focus{outline:none;background:#fff;border-color:var(--m-primary);box-shadow:0 0 0 3px rgba(0,164,128,.14)}
+.cms-clear{font-size:14px;color:var(--m-primary);cursor:pointer;white-space:nowrap;padding:5px 8px;border-radius:6px}
+.cms-clear:hover{background:var(--m-primary-soft)}
+.cms-sec{margin-bottom:16px}
+.cms-sec-t{font-size:13px;color:var(--m-text-3);margin-bottom:9px}
+.cms-hot{display:flex;flex-wrap:wrap;gap:7px}
+.cms-provbox{max-height:250px;overflow-y:auto;padding-right:4px;margin-right:-4px}
+.cms-provbox::-webkit-scrollbar{width:6px}
+.cms-provbox::-webkit-scrollbar-thumb{background:rgba(0,0,0,.14);border-radius:3px}
+.cms-prov{margin-bottom:12px}
+.cms-prov-t{font-size:14px;font-weight:500;color:var(--m-ink);cursor:pointer;margin-bottom:7px;display:inline-block;padding:2px 7px;margin-left:-7px;border-radius:6px;transition:background .15s}
+.cms-prov-t:hover{background:rgba(0,0,0,.05)}
+.cms-chips{display:flex;flex-wrap:wrap;gap:7px}
+.cms-chip{font-size:13px;padding:4px 12px;border:1px solid var(--m-border-ctrl);border-radius:var(--m-br-pill);background:#fff;cursor:pointer;color:var(--m-text-2);transition:background .12s,color .12s,border-color .12s;user-select:none}
+.cms-chip:hover{background:rgba(0,0,0,.04);color:var(--m-text)}
+.cms-chip.on{background:var(--m-ink);border-color:var(--m-ink);color:#fff}
+.cms-empty{color:var(--m-text-4);font-size:14px;padding:20px;text-align:center}
+
+.selbar{display:none;gap:7px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:16px;border-top:1px dashed var(--m-border)}
+.selbar.show{display:flex}
+.selbar .lbl{font-size:13px;color:var(--m-text-3)}
+.selitem{font-size:13px;padding:3px 8px 3px 12px;background:var(--m-primary-soft);border:1px solid rgba(0,164,128,.20);border-radius:var(--m-br-pill);color:var(--m-primary);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.selitem:hover{background:rgba(0,164,128,.18)}
+.selitem b{font-weight:400;opacity:.55;font-size:15px;line-height:1}
+
+.howto{margin-top:16px;border-top:1px dashed var(--m-border);padding-top:14px}
+.howto summary{font-size:13px;color:var(--m-text-3);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none}
+.howto summary::-webkit-details-marker{display:none}
+.howto summary::before{content:"▸";font-size:10px;transition:transform .18s;display:inline-block}
+.howto[open] summary::before{transform:rotate(90deg)}
+.howto summary:hover{color:var(--m-text-2)}
+.howto .body{margin-top:12px;font-size:13.5px;line-height:1.95;color:var(--m-text-2);background:var(--m-bg-2);border-radius:var(--m-br-ctrl);padding:14px 16px}
+.howto .body p+p{margin-top:6px}
+.howto .body b{color:var(--m-text);font-weight:500}
+.howto .body em{color:var(--m-accent);font-style:normal;font-weight:500}
+
+/* ===================== 结果栏 ===================== */
+.resultbar{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:26px 2px 14px;flex-wrap:wrap}
+.resultbar .cnt{font-size:14px;color:var(--m-text-2)}
+.resultbar .cnt b{color:var(--m-primary);font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;margin:0 3px}
+.resultbar .pg{font-size:13px;color:var(--m-text-3);font-variant-numeric:tabular-nums}
+
+/* ===================== 岗位卡片 ===================== */
+.card{background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-card);padding:18px 20px;margin-bottom:14px;box-shadow:var(--m-shadow-card);transition:box-shadow .2s,transform .2s,background .2s}
+.card:hover{box-shadow:var(--m-shadow-hover);transform:translateY(-1px);background:#fff}
+.c-head{display:flex;gap:14px;align-items:flex-start}
+.c-logo{flex:none;width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;letter-spacing:-.02em;user-select:none}
+.c-main{flex:1;min-width:0}
+.c-name{font-size:17px;line-height:26px;font-weight:500;color:var(--m-ink);letter-spacing:-.01em;word-break:break-all}
+.c-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.bdg{font-size:13px;line-height:20px;padding:2px 9px;border-radius:6px;background:var(--m-bg-2);color:var(--m-text-2);border:1px solid var(--m-border)}
+.bdg.batch{background:var(--m-primary-soft);color:var(--m-primary);border-color:rgba(0,164,128,.18);font-weight:500}
+.bdg.date{background:var(--m-bg-3);color:var(--m-text-2)}
+.bdg.dl{background:var(--m-accent-soft);color:#A6481A;border-color:rgba(243,133,70,.22)}
+.bdg.dl svg{vertical-align:-2px;margin-right:2px}
+.c-meta{font-size:14px;color:var(--m-text-2);margin-top:12px;display:flex;align-items:center;gap:6px}
+.c-meta svg{flex:none;color:var(--m-text-4)}
+.c-pos{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}
+.pitem{font-size:13.5px;line-height:22px;padding:3px 11px;background:#fff;border:1px solid var(--m-border-ctrl);border-radius:6px;color:var(--m-text-2)}
+.pitem.hit{background:var(--m-accent-soft);border-color:rgba(243,133,70,.28);color:#A6481A;font-weight:500}
+.pitem.more{border-style:dashed;background:transparent;color:var(--m-text-3)}
+mark{background:rgba(243,133,70,.22);color:#8F3D12;padding:0 2px;border-radius:3px;font-weight:500}
+.c-eval{font-size:14px;color:var(--m-text-2);margin-top:12px;padding-left:12px;border-left:2px solid var(--m-bg-3);font-weight:400;line-height:24px}
+.c-all{margin-top:12px;font-size:14px;color:var(--m-text-2);background:var(--m-bg-2);padding:12px 14px;border-radius:var(--m-br-ctrl);display:none;line-height:1.95}
+.c-all.show{display:block}
+.c-acts{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.abtn{height:36px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--m-br-ctrl);border:1px solid var(--m-border-ctrl);color:var(--m-text-2);background:#fff;font-size:14px;transition:background .15s,color .15s,border-color .15s}
+.abtn:hover{background:rgba(0,0,0,.04);color:var(--m-text)}
+.abtn.apply{margin-left:auto;background:var(--m-primary);border-color:var(--m-primary);color:#fff;font-weight:500}
+.abtn.apply:hover{background:var(--m-primary-hover);border-color:var(--m-primary-hover);color:#fff}
+.abtn.toggle{border-style:dashed;color:var(--m-text-3)}
+.abtn.toggle:hover{border-style:solid;color:var(--m-text-2)}
+
+/* ===================== 骨架屏 ===================== */
+.sk-card{background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-card);padding:18px 20px;margin-bottom:14px;display:flex;gap:14px}
+.sk{border-radius:8px;background:var(--m-bg-3);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.sk-logo{width:46px;height:46px;border-radius:11px;flex:none}
+.sk-body{flex:1}
+.sk-line{height:13px;margin-bottom:9px;border-radius:6px}
+.sk-line.w40{width:40%}.sk-line.w70{width:70%}.sk-line.w55{width:55%}
+
+/* ===================== 空状态 ===================== */
+.empty{text-align:center;padding:72px 20px;background:#fff;border:1px solid var(--m-border);border-radius:var(--m-br-card);box-shadow:var(--m-shadow-card)}
+.empty .big{width:56px;height:56px;margin:0 auto 18px;border-radius:15px;background:var(--m-bg-2);display:flex;align-items:center;justify-content:center;color:var(--m-text-4)}
+.empty h3{font-size:17px;font-weight:500;color:var(--m-ink);margin-bottom:7px}
+.empty p{font-size:14px;color:var(--m-text-3);margin-bottom:20px}
+
+/* ===================== 分页 ===================== */
+.pager{display:flex;justify-content:center;align-items:center;gap:7px;margin:26px 0 8px;flex-wrap:wrap}
+.pager button{min-width:38px;height:36px;padding:0 12px;border:1px solid var(--m-border-ctrl);background:#fff;border-radius:var(--m-br-ctrl);font-size:14px;color:var(--m-text-2);font-variant-numeric:tabular-nums;transition:background .15s,color .15s,border-color .15s}
+.pager button:hover:not(:disabled){background:rgba(0,0,0,.04);color:var(--m-text)}
+.pager button.on{background:var(--m-ink);border-color:var(--m-ink);color:#fff;font-weight:500}
+.pager button:disabled{opacity:.35;cursor:not-allowed}
+
+/* ===================== 页脚 / 回顶 ===================== */
+.foot{text-align:center;padding:36px 24px 44px;font-size:13px;color:var(--m-text-4);line-height:1.95}
+.totop{position:fixed;right:32px;bottom:32px;width:44px;height:44px;border-radius:var(--m-br-pill);background:#fff;border:1px solid var(--m-border-ctrl);box-shadow:var(--m-shadow-xl);color:var(--m-text-2);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s,background .15s;transform:translateY(8px);z-index:80}
+.totop.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.totop:hover{background:var(--m-bg-2);color:var(--m-ink)}
+
+/* ===================== 移动端 ===================== */
+@media (max-width:768px){
+  .wrap{padding:0 18px}
+  .hero .wrap{padding-top:30px;padding-bottom:26px}
+  .hero h1{font-size:24px;line-height:33px}
+  .hero-sub{font-size:14px}
+  .stats{gap:11px}
+  .stat{min-width:calc(50% - 6px);padding:14px 16px}
+  .stat b{font-size:24px;line-height:31px}
+  .filters{padding:16px;border-radius:var(--m-br-card)}
+  .search-box{min-width:100%}
+  .search-row>.btn{flex:1;justify-content:center}
+  .opts{gap:11px 16px}
+  .city-ms{width:100%}
+  .city-ms-btn{width:100%}
+  .card{padding:16px}
+  .c-logo{width:40px;height:40px;font-size:15px}
+  .c-name{font-size:16px}
+  .upd{display:none}
+  .totop{right:18px;bottom:18px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-name">求职助手</span>
+      <span class="brand-tag">物流 / 供应链</span>
+    </div>
+    <div class="topbar-right">
+      <span class="upd">数据更新 <b>2026-09-12 21:18</b></span>
+      <button class="btn" onclick="exportCSV()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0 3-3m-3 3L5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11.5v1A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        导出 CSV
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>找到属于你的物流 / 供应链岗位</h1>
+    <p class="hero-sub">共收录 <b class="num" id="hsAll">—</b> 条校招信息 · 已按物流、供应链、仓储、采购等关键词预筛 · 数据每日自动同步</p>
+    <div class="apibar" id="apiBar" hidden></div>
+    <div class="stats">
+      <div class="stat"><b id="hsTotal">0</b><span>当前结果</span></div>
+      <div class="stat"><b id="hsComp">0</b><span>涉及公司</span></div>
+      <div class="stat"><b id="hsCity">0</b><span>覆盖城市</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <section class="filters">
+    <div class="search-row">
+      <div class="search-box">
+        <span class="ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <input type="text" id="kw" placeholder="输入岗位关键词，如：物流 供应链 采购 关务（空格分隔多个词）" autocomplete="off">
+        <span class="kbd">/</span>
+      </div>
+      <button class="btn solid" onclick="preset('core')">物流供应链精准</button>
+      <button class="btn" onclick="preset('broad')">泛相关</button>
+      <button class="btn ghost" onclick="clearAll()">清空</button>
+    </div>
+
+    <div class="presets">
+      <span class="lbl">快捷词</span>
+      <span class="chip" data-k="物流">物流</span>
+      <span class="chip" data-k="供应链">供应链</span>
+      <span class="chip" data-k="仓储">仓储</span>
+      <span class="chip" data-k="运输">运输</span>
+      <span class="chip" data-k="配送">配送</span>
+      <span class="chip" data-k="采购">采购</span>
+      <span class="chip" data-k="供应商">供应商</span>
+      <span class="chip" data-k="关务">关务</span>
+      <span class="chip" data-k="报关">报关</span>
+      <span class="chip" data-k="单证">单证</span>
+      <span class="chip" data-k="货运">货运</span>
+      <span class="chip" data-k="船务">船务</span>
+      <span class="chip" data-k="快递">快递</span>
+      <span class="chip" data-k="物料">物料</span>
+      <span class="chip" data-k="库存">库存</span>
+      <span class="chip" data-k="调度">调度</span>
+      <span class="chip" data-k="履约">履约</span>
+      <span class="chip" data-k="PMC">PMC</span>
+      <span class="chip" data-k="管培生">管培生</span>
+      <span class="chip" data-k="物流管理">物流管理</span>
+    </div>
+
+    <div class="opts">
+      <label><input type="checkbox" id="andMode"> 需同时包含全部词</label>
+      <label><input type="checkbox" id="posOnly" checked> 仅搜索岗位字段</label>
+      <label><input type="checkbox" id="hideExpired"> 隐藏已截止</label>
+      <label><input type="checkbox" id="incNation" checked> 含「全国 / 海外」岗位</label>
+      <span class="fld"><span>批次</span><select id="fBatch"><option value="">全部</option></select></span>
+      <span class="fld"><span>行业</span><select id="fInd"><option value="">全部</option></select></span>
+      <span class="city-ms" id="cityMs">
+        <button type="button" class="city-ms-btn" id="cityMsBtn">全部城市 ▾</button>
+        <div class="city-ms-panel" id="cityMsPanel">
+          <div class="cms-top">
+            <input type="text" id="citySearch" placeholder="搜索城市，可多选…" autocomplete="off">
+            <span class="cms-clear" id="cmsClear">清空</span>
+          </div>
+          <div class="cms-sec">
+            <div class="cms-sec-t">热门城市</div>
+            <div class="cms-hot" id="cmsHot"></div>
+          </div>
+          <div class="cms-sec">
+            <div class="cms-sec-t">按省份选择 · 点省份名可整省全选或取消</div>
+            <div class="cms-provbox" id="cmsProv"></div>
+          </div>
+        </div>
+      </span>
+      <span class="fld"><span>排序</span><select id="fSort">
+        <option value="score">相关度优先</option>
+        <option value="date">更新日期</option>
+        <option value="name">公司名</option>
+      </select></span>
+    </div>
+
+    <div class="selbar" id="selBar"><span class="lbl">已选城市</span><span id="selItems"></span></div>
+
+    <details class="howto">
+      <summary>使用说明</summary>
+      <div class="body">
+        <p><b>精准筛选</b>：点「物流供应链精准」一键筛出对口岗位；也可自己输入关键词，空格分隔表示满足任一即可，勾选「需同时包含全部词」则要求全部命中。</p>
+        <p><b>高亮</b>：命中的关键词会以<em>橙色</em>标出，方便一眼确认这家公司招的到底是不是物流岗。</p>
+        <p><b>城市多选</b>：点「全部城市」展开面板，可按省份整选、搜索城市或直接点热门城市。很多岗位标注「全国 / 海外」，默认纳入结果；想只看明确写了具体城市的，取消勾选「含全国 / 海外岗位」。</p>
+        <p><b>看全部岗位</b>：卡片默认只显示命中的岗位，点「展开全部岗位」可查看该公司的完整在招列表。</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="resultbar">
+    <div class="cnt">共找到 <b id="cnt">0</b> 条记录</div>
+    <div class="pg" id="pgInfo"></div>
+  </div>
+
+  <div id="list">
+    <div class="sk-card"><div class="sk sk-logo"></div><div class="sk-body"><div class="sk sk-line w40"></div><div class="sk sk-line w70"></div><div class="sk sk-line w55"></div></div></div>
+    <div class="sk-card"><div class="sk sk-logo"></div><div class="sk-body"><div class="sk sk-line w40"></div><div class="sk sk-line w70"></div><div class="sk sk-line w55"></div></div></div>
+    <div class="sk-card"><div class="sk sk-logo"></div><div class="sk-body"><div class="sk sk-line w40"></div><div class="sk sk-line w70"></div><div class="sk sk-line w55"></div></div></div>
+    <div class="sk-card"><div class="sk sk-logo"></div><div class="sk-body"><div class="sk sk-line w40"></div><div class="sk sk-line w70"></div><div class="sk sk-line w55"></div></div></div>
+    <div class="sk-card"><div class="sk sk-logo"></div><div class="sk-body"><div class="sk sk-line w40"></div><div class="sk sk-line w70"></div><div class="sk sk-line w55"></div></div></div>
+  </div>
+  <div class="pager" id="pager"></div>
+</main>
+
+<footer class="foot">
+  岗位信息来自公开渠道聚合，请以企业官方招聘公告为准<br>
+  按 <b>/</b> 快速聚焦搜索框
+</footer>
+
+<button class="totop" id="toTop" aria-label="回到顶部">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V4m0 0L4.5 7.5M8 4l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<script>let DATA=[];</script>
+<script>let CITY_PROV={};</script>
+<script>const API_BASE=new URLSearchParams(location.search).get('api')||'./api/';</script>
+<script>
+const PRESET_CORE = ['物流','供应链','仓储','仓配','仓库','运输','配送','快递','关务','报关','货运','船务','海运','空运','航运','单证','货代','冷链','理货','分拨','转运','干线','履约','物料','库存','调度','采购','供应商','货源','寻源','PMC','物流管理','物流工程','交通运输','供应链管理','采购管理','仓储管理','运输管理','配送中心','物资管理','国际物流'];
+const PRESET_BROAD = PRESET_CORE.concat(['计划','订单','贸易','进出口','物资','盘点','调拨','发货','收货','装卸','运力','港口','码头','集运','包装','精益','生产运营','物流类','运营规划','网络规划','运营管理','仓网','车辆']);
+
+let PAGE = 1, PER = 40, RESULT = [];
+const SPLIT = /[,，、/;；|]+/;
+const $ = id => document.getElementById(id);
+
+/* ===== 公司标识块配色：低饱和莫兰迪，由公司名稳定生成 ===== */
+const logoCache = {};
+function logoOf(name) {
+  if (logoCache[name]) return logoCache[name];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const hue = h % 360;
+  const v = { bg: `hsl(${hue} 38% 93%)`, fg: `hsl(${hue} 42% 32%)`, ch: (name[0] || '?') };
+  logoCache[name] = v;
+  return v;
+}
+
+/* ===== 城市多选 ===== */
+const SELECTED = new Set();
+const HOT = ['北京','上海','广州','深圳','杭州','成都','武汉','南京','西安','苏州','重庆','天津','长沙','郑州','青岛','合肥','厦门','宁波','东莞','佛山'];
+let CITY_LIST = [], PROV_MAP = {};
+
+const CITY_SUF = ['彝族自治州','白族自治州','土家族苗族自治州','布依族苗族自治州','苗族侗族自治州','藏族自治州','柯尔克孜自治州','黎族自治县','自治州','自治区','地区','盟','省','市','县','区'];
+function normCity(c) {
+  if (!c) return '';
+  let s = String(c).trim().replace(/\.$/, '');
+  for (const x of CITY_SUF) { if (s.length > 2 && s.endsWith(x)) { s = s.slice(0, -x.length); break; } }
+  return s.length >= 2 ? s : '';
+}
+function parseCities(loc) {
+  if (!loc) return [];
+  if (/等城市|等全国|可根据|陆续更新|的精品零售门店|大学内办公/.test(loc)) return [];
+  return loc.split(/[,，、/\\|; ]+/).map(normCity).filter(c => c && c.length >= 2 && c.length <= 12);
+}
+function buildCityList() {
+  const seen = new Map();
+  Object.keys(CITY_PROV).forEach(k => {
+    const n = normCity(k);
+    if (n && !seen.has(n)) seen.set(n, CITY_PROV[k] || '其他');
+  });
+  CITY_LIST = [...seen.entries()].map(([n, p]) => ({ n, p })).sort((a, b) => a.n.localeCompare(b.n, 'zh'));
+  PROV_MAP = {};
+  CITY_LIST.forEach(c => { (PROV_MAP[c.p] = PROV_MAP[c.p] || []).push(c.n); });
+}
+function matchCity(r) {
+  if (!SELECTED.size) return true;
+  const loc = r.l || '';
+  if (/全国|海外|国外/.test(loc)) return !!($('incNation') && $('incNation').checked);
+  return parseCities(loc).some(c => SELECTED.has(c));
+}
+function updateCityBtn() {
+  const btn = $('cityMsBtn'), bar = $('selBar'), box = $('selItems');
+  if (!SELECTED.size) {
+    btn.textContent = '全部城市 ▾'; btn.className = 'city-ms-btn';
+    bar.className = 'selbar'; box.innerHTML = ''; return;
+  }
+  const arr = [...SELECTED];
+  btn.className = 'city-ms-btn on';
+  btn.textContent = arr.length <= 2 ? arr.join('、') + ' ▾' : arr.slice(0, 2).join('、') + ' +' + (arr.length - 2) + ' ▾';
+  bar.className = 'selbar show';
+  box.innerHTML = arr.map(c => `<span class="selitem" data-c="${c}">${c}<b>×</b></span>`).join('');
+  [...box.querySelectorAll('.selitem')].forEach(el => {
+    el.onclick = () => { SELECTED.delete(el.dataset.c); updateCityBtn(); renderCityPanel(); PAGE = 1; render(); };
+  });
+}
+function renderCityPanel() {
+  const q = ($('citySearch').value || '').trim();
+  $('cmsHot').innerHTML = HOT.filter(h => CITY_LIST.some(c => c.n === h))
+    .map(h => `<span class="cms-chip ${SELECTED.has(h) ? 'on' : ''}" data-c="${h}">${h}</span>`).join('');
+  let html = '';
+  Object.keys(PROV_MAP).sort((a, b) => a.localeCompare(b, 'zh')).forEach(p => {
+    const cs = PROV_MAP[p].filter(c => !q || c.includes(q));
+    if (!cs.length) return;
+    const allOn = cs.every(c => SELECTED.has(c));
+    html += `<div class="cms-prov"><span class="cms-prov-t" data-p="${p}">${p}${allOn ? ' ✓' : ''}</span>
+      <div class="cms-chips">${cs.map(c => `<span class="cms-chip ${SELECTED.has(c) ? 'on' : ''}" data-c="${c}">${c}</span>`).join('')}</div></div>`;
+  });
+  $('cmsProv').innerHTML = html || '<div class="cms-empty">没有匹配的城市</div>';
+  const bind = root => [...root.querySelectorAll('.cms-chip')].forEach(el => {
+    el.onclick = e => {
+      e.stopPropagation();
+      const c = el.dataset.c;
+      SELECTED.has(c) ? SELECTED.delete(c) : SELECTED.add(c);
+      updateCityBtn(); renderCityPanel(); PAGE = 1; render();
+    };
+  });
+  bind($('cmsHot')); bind($('cmsProv'));
+  [...$('cmsProv').querySelectorAll('.cms-prov-t')].forEach(el => {
+    el.onclick = e => {
+      e.stopPropagation();
+      const cs = PROV_MAP[el.dataset.p].filter(c => !q || c.includes(q));
+      const allOn = cs.every(c => SELECTED.has(c));
+      cs.forEach(c => allOn ? SELECTED.delete(c) : SELECTED.add(c));
+      updateCityBtn(); renderCityPanel(); PAGE = 1; render();
+    };
+  });
+}
+
+/* 构建下拉与城市面板：数据源切换后要重建，故单独抽出并先清空旧选项 */
+function buildOptions() {
+  [['fBatch','b'],['fInd','i']].forEach(([id, key]) => {
+    const sel = $(id);
+    sel.innerHTML = '<option value="">全部</option>';
+    const set = new Set();
+    DATA.forEach(r => (r[key] || '').split(/[,，、]/).map(s => s.trim()).filter(Boolean).forEach(v => set.add(v)));
+    [...set].sort((a,b) => a.localeCompare(b,'zh')).forEach(v => {
+      const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+    });
+  });
+  buildCityList();
+  renderCityPanel();
+}
+
+/* 事件绑定：整个页面生命周期只执行一次 */
+function bindUI() {
+  $('cityMsBtn').addEventListener('click', e => { e.stopPropagation(); $('cityMsPanel').classList.toggle('show'); });
+  $('cityMsPanel').addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => $('cityMsPanel').classList.remove('show'));
+  $('citySearch').addEventListener('input', renderCityPanel);
+  $('cmsClear').addEventListener('click', () => { SELECTED.clear(); updateCityBtn(); renderCityPanel(); PAGE = 1; render(); });
+  ['kw','andMode','posOnly','hideExpired','incNation','fBatch','fInd','fSort'].forEach(id => {
+    $(id).addEventListener('input', () => { PAGE = 1; render(); });
+    $(id).addEventListener('change', () => { PAGE = 1; render(); });
+  });
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    c.classList.toggle('on');
+    const on = [...document.querySelectorAll('.chip.on')].map(x => x.dataset.k);
+    $('kw').value = on.join(' ');
+    PAGE = 1; render();
+  }));
+
+  // 「/」聚焦搜索框
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== $('kw') && document.activeElement !== $('citySearch')) {
+      e.preventDefault(); $('kw').focus(); $('kw').select();
+    }
+    if (e.key === 'Escape') document.activeElement && document.activeElement.blur();
+  });
+
+  // 回到顶部
+  const tt = $('toTop');
+  window.addEventListener('scroll', () => { tt.classList.toggle('show', window.scrollY > 420); }, { passive: true });
+  tt.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function init() {
+  bindUI();
+  buildOptions();
+  preset('core');
+}
+
+function preset(type) {
+  const words = type === 'core' ? PRESET_CORE : PRESET_BROAD;
+  $('kw').value = words.join(' ');
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', words.includes(c.dataset.k)));
+  PAGE = 1; render();
+}
+function clearAll() {
+  $('kw').value = ''; $('fBatch').value = ''; $('fInd').value = '';
+  $('andMode').checked = false; $('hideExpired').checked = false;
+  SELECTED.clear(); updateCityBtn(); renderCityPanel();
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  PAGE = 1; render();
+}
+
+function isExpired(r) {
+  const dl = (r.dl || '').trim();
+  if (!dl || dl.includes('招满') || dl.includes('尽快') || dl === '') return false;
+  const m = dl.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
+  if (!m) return false;
+  return new Date(+m[1], +m[2] - 1, +m[3]) < new Date();
+}
+
+function search() {
+  const raw = $('kw').value.trim();
+  const words = raw ? raw.split(/[\s,，]+/).filter(Boolean) : [];
+  const and = $('andMode').checked, posOnly = $('posOnly').checked;
+  const fb = $('fBatch').value, fi = $('fInd').value;
+  const hideExp = $('hideExpired').checked;
+
+  let res = DATA.filter(r => {
+    if (fb && r.b !== fb) return false;
+    if (fi && r.i !== fi) return false;
+    if (!matchCity(r)) return false;
+    if (hideExp && isExpired(r)) return false;
+    if (!words.length) return true;
+    const hay = posOnly ? (r.p || '') : [r.p, r.c, r.e, r.i].join(' ');
+    return and ? words.every(w => hay.includes(w)) : words.some(w => hay.includes(w));
+  });
+
+  if (words.length) {
+    res.forEach(r => {
+      const items = (r.p || '').split(SPLIT).map(s => s.trim()).filter(Boolean);
+      r._hit = items.filter(it => words.some(w => it.includes(w)));
+      r._score = r._hit.length * 10 + (words.some(w => (r.c || '').includes(w)) ? 3 : 0);
+    });
+  } else {
+    res.forEach(r => { r._hit = []; r._score = r._s || 0; });
+  }
+
+  const sort = $('fSort').value;
+  res.sort((a, b) => {
+    if (sort === 'date') return (b.d || '').localeCompare(a.d || '');
+    if (sort === 'name') return (a.c || '').localeCompare(b.c || '', 'zh');
+    return (b._score - a._score) || (b.d || '').localeCompare(a.d || '');
+  });
+  return { res, words };
+}
+
+function esc(s) { return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function hl(s, words) {
+  let h = esc(s);
+  if (words && words.length) {
+    words.forEach(w => {
+      const safe = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      h = h.replace(new RegExp(safe, 'g'), '<mark>' + w + '</mark>');
+    });
+  }
+  return h;
+}
+
+const ICO_PIN = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 14.5s5-4.2 5-8a5 5 0 0 0-10 0c0 3.8 5 8 5 8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="6.5" r="1.8" stroke="currentColor" stroke-width="1.4"/></svg>';
+const ICO_CLOCK = '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.8V8l2.2 1.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICO_LINK = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6.5 9.5 9.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.2 4.6 8.6 3.2a2.6 2.6 0 0 1 3.7 3.7l-1.4 1.4M8.8 11.4l-1.4 1.4a2.6 2.6 0 0 1-3.7-3.7l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+function render() {
+  const { res, words } = search();
+  RESULT = res;
+  $('cnt').textContent = res.length;
+  $('hsTotal').textContent = res.length;
+  $('hsComp').textContent = new Set(res.map(r => r.c)).size;
+  const cities = new Set();
+  res.forEach(r => (r.l || '').split(/[,，、]/).map(s => s.trim()).filter(Boolean).forEach(v => cities.add(v)));
+  $('hsCity').textContent = cities.size;
+
+  const total = Math.ceil(res.length / PER) || 1;
+  if (PAGE > total) PAGE = total;
+  const page = res.slice((PAGE - 1) * PER, PAGE * PER);
+
+  if (!res.length) {
+    $('list').innerHTML = '<div class="empty"><div class="big">' +
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' +
+      '</div><h3>没有匹配的岗位</h3><p>换个关键词，或放宽城市、批次等筛选条件试试</p>' +
+      '<button class="btn" onclick="clearAll()">清空筛选条件</button></div>';
+    $('pager').innerHTML = ''; $('pgInfo').textContent = ''; return;
+  }
+
+  $('list').innerHTML = page.map(r => {
+    const items = (r.p || '').split(SPLIT).map(s => s.trim()).filter(Boolean);
+    const hits = r._hit && r._hit.length ? r._hit : items.slice(0, 8);
+    const showHits = hits.slice(0, 14).map(it => `<span class="pitem hit">${hl(it, words)}</span>`).join('');
+    const more = hits.length > 14 ? `<span class="pitem more">…共 ${hits.length} 个匹配</span>` : '';
+    const all = items.map(it => hl(it, words)).join(' · ');
+    const dl = r.dl ? `<span class="bdg dl">${ICO_CLOCK}${esc(r.dl)}</span>` : '';
+    const lg = logoOf(r.c || '?');
+    return `<div class="card">
+      <div class="c-head">
+        <div class="c-logo" style="background:${lg.bg};color:${lg.fg}">${esc(lg.ch)}</div>
+        <div class="c-main">
+          <div class="c-name">${hl(r.c, words)}</div>
+          <div class="c-badges">
+            ${r.b ? `<span class="bdg batch">${esc(r.b)}</span>` : ''}
+            ${r.d ? `<span class="bdg date">${esc(r.d)}</span>` : ''}
+            ${r.i ? `<span class="bdg">${esc(r.i)}</span>` : ''}
+            ${r.n ? `<span class="bdg">${esc(r.n)}</span>` : ''}${dl}
+          </div>
+        </div>
+      </div>
+      <div class="c-meta">${ICO_PIN}${hl(r.l, words) || '地点未标注'}</div>
+      <div class="c-pos">${showHits}${more}</div>
+      ${r.e ? `<div class="c-eval">${hl(r.e, words)}</div>` : ''}
+      <div class="c-all">${all}</div>
+      <div class="c-acts">
+        ${r.s ? `<a class="abtn" href="${esc(r.s)}" target="_blank" rel="noopener">信息来源</a>` : ''}
+        <span class="abtn toggle">展开全部岗位</span>
+        ${r.a ? `<a class="abtn apply" href="${esc(r.a)}" target="_blank" rel="noopener">${ICO_LINK}点击投递</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.abtn.toggle').forEach(btn => {
+    btn.onclick = () => {
+      const box = btn.parentElement.previousElementSibling;
+      box.classList.toggle('show');
+      btn.textContent = box.classList.contains('show') ? '收起' : '展开全部岗位';
+    };
+  });
+
+  $('pgInfo').textContent = `第 ${PAGE} / ${total} 页`;
+  let ph = `<button ${PAGE===1?'disabled':''} onclick="go(1)">首页</button>
+            <button ${PAGE===1?'disabled':''} onclick="go(${PAGE-1})">上一页</button>`;
+  const start = Math.max(1, PAGE - 2), end = Math.min(total, start + 4);
+  for (let i = Math.max(1, Math.min(start, end - 4)); i <= end; i++)
+    ph += `<button class="${i===PAGE?'on':''}" onclick="go(${i})">${i}</button>`;
+  ph += `<button ${PAGE===total?'disabled':''} onclick="go(${PAGE+1})">下一页</button>
+         <button ${PAGE===total?'disabled':''} onclick="go(${total})">末页</button>`;
+  $('pager').innerHTML = ph;
+}
+function go(p) { PAGE = p; render(); window.scrollTo({ top: 300, behavior: 'smooth' }); }
+
+function exportCSV() {
+  const rows = [['更新日期','公司名称','行业','性质','批次','工作地点','招聘岗位','匹配岗位','公司简介','截止时间','投递链接','信息来源']];
+  RESULT.forEach(r => rows.push([r.d, r.c, r.i, r.n, r.b, r.l, r.p, (r._hit || []).join(' / '), r.e, r.dl, r.a, r.s]));
+  const csv = '\ufeff' + rows.map(r => r.map(c => `"${String(c == null ? '' : c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = '校招_物流供应链岗位_' + RESULT.length + '条.csv';
+  a.click();
+}
+
+/* ===================== 启动：内嵌数据 或 远程接口 ===================== */
+const LS_VER = 'jobs.ver', LS_ROWS = 'jobs.rows', LS_CITY = 'jobs.cities';
+let META = null, INITED = false;
+
+function setBar(html, isErr) {
+  const b = $('apiBar');
+  if (!b) return;
+  b.hidden = false;
+  b.className = 'apibar' + (isErr ? ' err' : '');
+  b.innerHTML = html;
+}
+
+async function apiGet(file) {
+  const r = await fetch(API_BASE + file, { cache: 'no-store' });
+  if (!r.ok) throw new Error(file + ' 返回 HTTP ' + r.status);
+  return r.json();
+}
+
+function remember(meta, rows, cities) {
+  try {
+    localStorage.setItem(LS_VER, meta.updatedAt || meta.updated);
+    localStorage.setItem(LS_CITY, JSON.stringify(cities));
+    // 全量 4MB 超出 localStorage 容量，只缓存体积可控的分包
+    if (rows.length <= 3000) localStorage.setItem(LS_ROWS, JSON.stringify(rows));
+    else localStorage.removeItem(LS_ROWS);
+  } catch (e) { /* 隐私模式或超限时静默降级 */ }
+}
+
+async function loadShard(key) {
+  const meta = META || await apiGet('meta.json');
+  const sh = meta.shards[key];
+  setBar(`<span class="spin"></span>正在加载 ${sh.count} 条岗位（压缩后约 ${(sh.gzip / 1048576).toFixed(2)} MB）…`);
+  const [rows, cities] = await Promise.all([apiGet(sh.file), apiGet('cities.json')]);
+  DATA = rows; CITY_PROV = cities; META = meta;
+  remember(meta, rows, cities);
+  return meta;
+}
+
+function afterLoad(meta, key) {
+  const el = $('hsAll');
+  if (el) el.textContent = meta.total;
+  setBar(key === 'logistics'
+    ? `<span class="dot"></span>数据来自接口 · ${meta.updated} · 当前为物流/供应链分包 ${meta.hit} 条（全量 ${meta.total} 条）· <a onclick="loadAll()">加载全部</a>`
+    : `<span class="dot"></span>数据来自接口 · ${meta.updated} · 全量 ${meta.total} 条`);
+  buildOptions();
+  if (!INITED) { INITED = true; preset('core'); }
+  else { PAGE = 1; render(); }
+}
+
+async function loadAll() {
+  try { await loadShard('all'); afterLoad(META, 'all'); }
+  catch (e) { setBar('全量加载失败：' + e.message, true); }
+}
+
+async function boot() {
+  bindUI();
+  if (!API_BASE) { buildOptions(); preset('core'); return; }
+  try {
+    setBar('<span class="spin"></span>正在连接数据接口…');
+    const meta = await apiGet('meta.json');
+    META = meta;
+    const ver = meta.updatedAt || meta.updated;
+    const cached = localStorage.getItem(LS_ROWS);
+    if (cached && localStorage.getItem(LS_VER) === ver) {
+      DATA = JSON.parse(cached);
+      CITY_PROV = JSON.parse(localStorage.getItem(LS_CITY) || '{}');
+      afterLoad(meta, 'logistics');
+      return;
+    }
+    await loadShard('logistics');
+    afterLoad(meta, 'logistics');
+  } catch (e) {
+    setBar(`<span class="dot"></span>接口加载失败：${e.message} · <a onclick="location.reload()">重试</a> · 若通过 file:// 打开请改用链接访问`, true);
+  }
+}
+boot();
+</script>
+</body>
+</html>
